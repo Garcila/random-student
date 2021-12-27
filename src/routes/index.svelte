@@ -1,136 +1,104 @@
-<script>
-	import { fly, fade } from 'svelte/transition';
-	let visible = true;
-	let names = [
-		'Abdi H.',
-		'Amanda C.',
-		'Antara S.',
-		'Charles J.',
-		'Christine C.',
-		'Dandre D.',
-		'David B.',
-		'Don M.',
-		'Echeta O.',
-		'Enshen Z.',
-		'Evan B.',
-		'Harris G.',
-		'Kaitlyn S.',
-		'Kelcie M.',
-		'Kenneth W.',
-		'Kiranjot K.',
-		'Luca V.',
-		'Megha P.',
-		'Michael K.',
-		'Michael P.',
-		'Mohammad A.',
-		'Oleg D.',
-		'Oleksandr A.',
-		'Rekha B.',
-		'Sevan B.',
-		'Somaiah U.',
-		'Sophie Q.',
-		'Usama P.',
-		'Vijay R.',
-		'William C.'
-	];
-	let availableNames = names;
-	let volunteerOne = 'One';
-	let volunteerTwo = 'Two';
-	let volunteerThree = 'Three';
-	let participantsLeft = availableNames.length;
+<script lang="ts">
+	import { names } from '../names';
 
-	function getVolunteers(duration, skipSpeed) {
-		visible = visible ? !visible : visible;
-		// make sure that we always have volunteers to choose from
+	let availableNames: string[] = names;
+	let participantsLeft: number = availableNames.length;
+	let namesToDisplay: string[] = ['0101', '0001', '1001'];
+	let volunteers: number = 3;
+
+	function getVolunteers(duration: number, skipSpeed: number, number_volunteers: number) {
+		//make sure that we always have volunteers to choose from
 		if (participantsLeft < 4) {
 			availableNames = names;
 		}
 
-		function getName() {
-			return availableNames[Math.floor(Math.random() * availableNames.length)];
+		// returns a random volunteer
+		function getName(): string {
+			const foundVolunteer = availableNames[Math.floor(Math.random() * availableNames.length)];
+			return foundVolunteer;
 		}
 
-		let timerId = setInterval(() => {
-			volunteerOne = getName();
-			volunteerTwo = getName();
-			volunteerThree = getName();
+		// gets as many volunteers as chosen and adds the names to the namesTodisplay array
+		let timerId = setInterval((): void => {
+			namesToDisplay = [];
+			for (let i = 0; i < number_volunteers; i++) {
+				namesToDisplay.push(getName());
+				namesToDisplay = namesToDisplay;
+			}
 		}, skipSpeed);
 
-		// stop after 1 second
-		setTimeout(() => {
+		// stop after chosen duration in getVolunteers Function (set at 1 second)
+		setTimeout((): void => {
 			clearInterval(timerId);
 			removeFromNames();
 		}, duration);
 
-		// function to display random names and later set the final three
-		function setNames() {
-			volunteerOne = getName();
-			volunteerTwo = getName();
-			volunteerThree = getName();
-		}
-
-		// select three unique volunteers and remove them from the list
-		function removeFromNames() {
-			volunteerOne = getName();
-			volunteerTwo = volunteerTwo === volunteerOne ? getName() : volunteerTwo;
-			volunteerThree =
-				volunteerThree === volunteerTwo || volunteerThree === volunteerOne
-					? getName()
-					: volunteerThree;
-			availableNames = availableNames.filter(
-				(i) => i !== volunteerOne && i !== volunteerTwo && i != volunteerThree
-			);
+		// select three unique volunteers and removes them from the list for the next selection round
+		function removeFromNames(): void {
+			namesToDisplay = [];
+			for (let i = 0; i < number_volunteers; i++) {
+				const foundVolunteer = getName();
+				namesToDisplay.push(foundVolunteer);
+				namesToDisplay = namesToDisplay;
+				availableNames = availableNames.filter((i) => i !== foundVolunteer);
+			}
 			participantsLeft = availableNames.length;
 		}
-
-		// TODO: Have and array to store the volunteers.  will enable selecting different number of volunteers and will clean up the code
 	}
 </script>
 
 <main>
 	<h1>PARTICIPATRON</h1>
 	<ul>
-		<div class="card">
-			<img src={`https://robohash.org/${volunteerOne}.png`} alt={`robot from ${volunteerOne}`} />
-			<li class="chosen">{volunteerOne}</li>
-		</div>
-		<div class="card">
-			<img src={`https://robohash.org/${volunteerTwo}.png`} alt={`robot from ${volunteerTwo}`} />
-			<li class="chosen">{volunteerTwo}</li>
-		</div>
-		<div class="card">
-			<img src={`https://robohash.org/${volunteerThree}.png`} alt={`robot from ${volunteerTwo}`} />
-			<li class="chosen">{volunteerThree}</li>
-		</div>
+		{#each namesToDisplay as name}
+			<div class="card">
+				<img src={`https://robohash.org/${name}.png`} alt={`robot from ${name}`} />
+				<li class="chosen">{name}</li>
+			</div>
+		{/each}
 	</ul>
-
-	<button on:click={() => getVolunteers(500, 100)}><div class="flower">&#10044;</div></button>
+	<button on:click={() => getVolunteers(1000, 100, volunteers)}
+		><div class="flower">&#10044;</div></button
+	>
+	<section>
+		<input type="range" bind:value={volunteers} min="1" max="6" />
+		<div class="volunteers">{volunteers} <label for="thinking">volunteers</label></div>
+	</section>
 </main>
 
 <style>
+	/* FONTS USED */
 	@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Nunito+Sans:wght@200&display=swap');
+
 	:root {
-		background: #eef0f4;
-		height: 100vh;
+		/* VARIABLES */
+		--font-color: #a1a1a1;
+		--back-color: #eef0f4;
+		--decoration-color: #ff69b4;
+		--decoration-pure: #ffffff;
+		--button-text-color: #8a8888;
+
+		background: var(--back-color);
+		height: 100%;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
+		overflow-y: scroll;
+		margin-top: 1rem;
 	}
 
 	main {
+		height: 100%;
 		max-width: 70vw;
 		font-family: 'Nunito Sans', sans-serif;
-		color: rgb(161, 161, 161);
+		color: var(--font-color);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		background: #eef0f4;
+		background: var(--back-color);
 		border-radius: 5%;
-		box-shadow: inset 9.91px 9.91px 15px #d9dade, inset -9.91px -9.91px 15px #ffffff;
+		box-shadow: inset 9.91px 9.91px 15px #d9dade, inset -9.91px -9.91px 15px var(--decoration-pure);
 		padding: 5rem 4rem;
-
-		/* box-shadow: inset 9.91px 9.91px 15px #d9dade, inset 0px 0px 19px 8px rgba(255, 105, 180, 0.65); */
 	}
 
 	h1 {
@@ -138,7 +106,25 @@
 		margin-top: 0;
 		text-decoration: underline;
 		text-decoration-thickness: 0.2em;
-		text-decoration-color: #ff69b4;
+		text-decoration-color: var(--decoration-color);
+		position: sticky;
+	}
+
+	ul {
+		padding: 0;
+		margin: 0;
+		padding-inline-start: 0;
+	}
+
+	li {
+		font-size: 1.5rem;
+		background: var(--back-color);
+		border-radius: 5%;
+		box-shadow: inset 9.91px 9.91px 15px #d9dade, inset -9.91px -9.91px 15px var(--decoration-pure);
+		padding: 1.5rem 1rem;
+		list-style: none;
+		min-width: 60vw;
+		text-align: center;
 	}
 
 	.card {
@@ -152,57 +138,37 @@
 		top: -10px;
 		left: -30px;
 		max-height: 6rem;
-		background: #eef0f4;
+		background: var(--back-color);
 		border-radius: 100%;
-		box-shadow: 9.91px 9.91px 15px #d9dade, -9.91px -9.91px 15px #ffffff;
-		overflow: hidden;
-		border: 5px solid #fff;
+		box-shadow: 9.91px 9.91px 15px #d9dade, -9.91px -9.91px 15px var(--decoration-pure);
+		border: 5px solid var(--boder-color);
 	}
 
-	ul {
-		padding: 0;
-		margin: 0;
-		padding-inline-start: 0;
-	}
-	li {
-		font-size: 1.5rem;
-		background: #eef0f4;
-		border-radius: 5%;
-		box-shadow: inset 9.91px 9.91px 15px #d9dade, inset -9.91px -9.91px 15px #ffffff;
-		padding: 1.5rem 1rem;
-		list-style: none;
-		min-width: 60vw;
-		text-align: center;
-	}
-
-	i {
-		font-style: normal;
-	}
 	button {
 		width: 10rem;
 		height: 10rem;
-		background: #eef0f4;
+		background: var(--back-color);
 		border-radius: 100%;
-		box-shadow: 9.91px 9.91px 15px #d9dade, -9.91px -9.91px 15px #ffffff;
+		box-shadow: 9.91px 9.91px 15px #d9dade, -9.91px -9.91px 15px var(--decoration-pure);
 		font-family: 'Nunito Sans', sans-serif;
 		font-size: 4rem;
-		color: #8a8888;
+		color: var(--button-text-color);
 		border: none;
 	}
 
 	button:hover {
-		border: 3px solid white;
+		border: 3px solid var(--decoration-pure);
 		color: #aaa9a9;
-		outline: 1px solid white;
+		outline: 1px solid var(--decoration-pure);
 	}
 
 	button:focus {
-		outline: 1px solid white;
+		outline: 1px solid var(--decoration-pure);
 	}
 
 	button:active {
 		box-shadow: 4px 4px 12px #c5c5c5, -4px -4px 12px #ffffff;
-		outline: 1px solid white;
+		outline: 1px solid var(--decoration-pure);
 	}
 	button:active .flower {
 		animation-name: spin;
@@ -210,6 +176,53 @@
 		animation-timing-function: linear;
 		animation-iteration-count: infinite;
 		outline: none;
+	}
+
+	.volunteers {
+		margin-top: 1rem;
+		text-align: center;
+	}
+
+	/* part From CSS Tricks */
+	input[type='range'] {
+		margin-top: 2rem;
+		-webkit-appearance: none;
+		width: 100%;
+		background: transparent;
+	}
+	input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+	}
+
+	input[type='range']:focus {
+		outline: 1px solid var(--decoration-pure);
+	}
+
+	input[type='range']::-ms-track {
+		width: 100%;
+		cursor: pointer;
+
+		background: transparent;
+		border-color: transparent;
+		color: transparent;
+	}
+	input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		height: 2rem;
+		width: 2rem;
+		border-radius: 50%;
+		background: var(--decoration-color);
+		cursor: pointer;
+		margin-top: 0px;
+		box-shadow: 1px 1px 1px #c5c5c5, 0px 0px 1px var(--decoration-pure);
+	}
+
+	input[type='range']::-webkit-slider-runnable-track {
+		width: 100%;
+		height: 2rem;
+		cursor: pointer;
+		border-radius: 5%;
+		box-shadow: inset 10.51px 10.51px 9px #e1e3e7, inset -10.51px -10.51px 9px #fbfdff;
 	}
 
 	@keyframes spin {
