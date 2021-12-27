@@ -47,6 +47,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Participatron</title>
+</svelte:head>
+
 <main>
 	<h1>PARTICIPATRON</h1>
 	<ul>
